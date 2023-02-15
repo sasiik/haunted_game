@@ -8,14 +8,19 @@ import pygame
 def init_pygame_screen():
     root = tk.Tk()
 
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
+    # screen_width = root.winfo_screenwidth()
+    # screen_height = root.winfo_screenheight()
+    screen_width = 1280
+    screen_height = 720
+    w_scale = screen_width / 1920 * 1.5
+    h_scale = screen_height / 1080 * 1.5
+    scale = (w_scale, h_scale)
 
     pygame.init()
     size = screen_width, screen_height
     screen = pygame.display.set_mode(size)
 
-    return screen, size
+    return screen, size, scale
 
 
 def load_image(name, colorkey=None):
@@ -34,7 +39,7 @@ def load_image(name, colorkey=None):
     return image
 
 
-screen, size = init_pygame_screen()
+screen, size, scale = init_pygame_screen()
 FPS = 60
 
 
@@ -93,76 +98,49 @@ tile_width = tile_height = 50
 animations_frames_count = 5
 
 
-class AnimatedInstance:
-    # переписать лого меню и сделать родительским классом баттона
-    pass
+# группы спрайтов
+all_sprites = pygame.sprite.Group()
+tiles_group = pygame.sprite.Group()
+player_group = pygame.sprite.Group()
 
 
-class Button:
+
+class AnimatedObject:
     def __init__(self, x, y, animation, scale):
         self.width = animation[0].get_width()
         self.height = animation[0].get_height()
-        if scale != 1:
-            for i in range(len(animation)):
-                animation[i] = pygame.transform.scale(animation[i], (int(self.width*scale), int(self.height*scale)))
         self.anim = animation
-        print(self.anim)
+        self.scaling(scale)
         self.rect = self.anim[0].get_rect()
         self.rect.topleft = (x, y)
 
     def draw(self, frame):
         screen.blit(self.anim[frame], (self.rect.x, self.rect.y))
 
+    def scaling(self, scale):
+        if scale != (1, 1):
+            for i in range(len(self.anim)):
+                self.anim[i] = pygame.transform.scale(self.anim[i],
+                                                      (int(self.width * scale[0]), int(self.height * scale[1])))
 
-logo_animation = []
-menu_logo_width, menu_logo_height = 700, 150
-playbtn_animation = []
-settings_btn_animation = []
-navbtns_width, navbtns_height = 100, 100
-for i in range(1, animations_frames_count + 1):
-    logo_animation.append(load_image(f'mainmenu/menu_logo_{i}.png'))
-    playbtn_animation.append(load_image(f'mainmenu/play_button_{i}.png'))
-    settings_btn_animation.append(load_image(f'mainmenu/settings_logo_{i}.png'))
+class Button(AnimatedObject):
+    def __init__(self, x, y, animation, scale, action):
+        super().__init__(x, y, animation, scale)
+        self.clicked = False
 
-scale = 1.5
-play_button = Button(size[0] // 4, size[1] - 300, playbtn_animation, scale=scale)
-settings_btn = Button(size[0] - size[0] // 4 - navbtns_width*scale, size[1] - 300, settings_btn_animation, scale=scale)
+    def draw(self, frame):
+        pos = pygame.mouse.get_pos()
 
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+                self.clicked = True
+                return action
 
-def start_screen():
-    frame = 0
-    last_upd = pygame.time.get_ticks()
-    anim_cooldown = 150
-    while True:
-        screen.fill(pygame.Color('black'))
+            if pygame.mouse.get_pressed()[0] == 0:
+                self.clicked = False
 
-        current_time = pygame.time.get_ticks()
-        if current_time - last_upd >= anim_cooldown:
-            frame += 1
-            last_upd = current_time
-            if frame >= len(logo_animation):
-                frame = 0
+        screen.blit(self.anim[frame], (self.rect.x, self.rect.y))
 
-        screen.blit(logo_animation[frame], (size[0] // 2 - menu_logo_width // 2, menu_logo_height))
-        play_button.draw(frame)
-        settings_btn.draw(frame)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                terminate()
-        pygame.display.flip()
-        clock.tick(FPS)
-
-
-player_image = pygame.transform.scale(load_image('game/hero_forward_1.png'), (tile_width, tile_height))
-
-# основной персонаж
-player = None
-
-# группы спрайтов
-all_sprites = pygame.sprite.Group()
-tiles_group = pygame.sprite.Group()
-player_group = pygame.sprite.Group()
 
 
 class Tile(pygame.sprite.Sprite):
@@ -172,19 +150,12 @@ class Tile(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
 
-
-class Player(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y):
-        super().__init__(player_group, all_sprites)
-        self.image = player_image
+class Player(pygame.sprite.Sprite, AnimatedObject):
+    def __init__(self, pos_x, pos_y, animation, scale):
+        super().__init__(player_group, all_sprites, animation, scale)
         self.pos_x = pos_x
         self.pos_y = pos_y
-        self.init_location()
-
-    def init_location(self):
-        self.rect = self.image.get_rect().move(
-            tile_width * self.pos_x, tile_height * self.pos_y)
-        print(self.rect)
+        self.scaling(scale)
 
     def move(self, dir):
         if dir == 'L':
@@ -195,34 +166,11 @@ class Player(pygame.sprite.Sprite):
             self.pos_y -= 1
         elif dir == 'D':
             self.pos_y += 1
-        self.init_location()
 
-
-def generate_level(level):
-    new_player, x, y = None, None, None
-    for y in range(len(level)):
-        for x in range(len(level[y])):
-            if level[y][x] == '.':
-                Tile('empty', x, y)
-            elif level[y][x] == '#':
-                Tile('wall', x, y)
-            elif level[y][x] == '@':
-                Tile('empty', x, y)
-                new_player = Player(x, y)
-    # вернем игрока, а также размер поля в клетках
-    return new_player, x, y
-
-
-if __name__ == '__main__':
-    screen = pygame.display.set_mode(size)
+def play_game():
     running = True
-    # camera = Camera()
-    clock = pygame.time.Clock()
-    start_screen()
-    # player, level_x, level_y = generate_level(load_level('level1.txt'))
-    # camera.init_camera(tiles_group, player_group)
     while running:
-        screen.fill(pygame.color.Color('white'))
+        screen.fill(pygame.color.Color('black'))
         # обновляем положение всех спрайтов
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -244,5 +192,80 @@ if __name__ == '__main__':
         tiles_group.draw(screen)
         player_group.draw(screen)
         pygame.display.flip()
+
+
+
+def generate_level(level):
+    new_player, x, y = None, None, None
+    for y in range(len(level)):
+        for x in range(len(level[y])):
+            if level[y][x] == '.':
+                Tile('empty', x, y)
+            elif level[y][x] == '#':
+                Tile('wall', x, y)
+            elif level[y][x] == '@':
+                Tile('empty', x, y)
+                new_player = Player(x, y)
+    # вернем игрока, а также размер поля в клетках
+    return new_player, x, y
+
+
+player_animations = {'forward': [], 'backward': [], 'left': [], 'right': []}
+logo_animation = []
+menu_logo_width, menu_logo_height = 700, 150
+playbtn_animation = []
+settings_btn_animation = []
+navbtns_width, navbtns_height = 100, 100
+for i in range(1, animations_frames_count + 1):
+    logo_animation.append(load_image(f'mainmenu/menu_logo_{i}.png'))
+    playbtn_animation.append(load_image(f'mainmenu/play_button_{i}.png'))
+    settings_btn_animation.append(load_image(f'mainmenu/settings_logo_{i}.png'))
+    for key in player_animations.keys():
+        for i in range(1, animations_frames_count + 1):
+            player_animations[key].append(f'game/hero_{key}_{i}')
+
+play_button = Button(size[0] // 4, size[1] - 200 * scale[1], playbtn_animation, scale=scale, action=play_game())
+settings_btn = Button(size[0] - size[0] // 4 - navbtns_width * scale[0], size[1] - 200 * scale[1],
+                      settings_btn_animation,
+                      scale=scale, action=True)
+logo = AnimatedObject(size[0] // 2 - menu_logo_width * scale[0] // 2, 100 * scale[1], logo_animation, scale=scale)
+
+player_image = pygame.transform.scale(load_image('game/hero_forward_1.png'), (tile_width, tile_height))
+# основной персонаж
+player = None
+
+
+def start_screen():
+    frame = 0
+    last_upd = pygame.time.get_ticks()
+    anim_cooldown = 150
+    while True:
+        screen.fill(pygame.Color('black'))
+
+        current_time = pygame.time.get_ticks()
+        if current_time - last_upd >= anim_cooldown:
+            frame += 1
+            last_upd = current_time
+            if frame >= len(logo_animation):
+                frame = 0
+
+        logo.draw(frame)
+        play_button.draw(frame)
+        settings_btn.draw(frame)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+        pygame.display.flip()
         clock.tick(FPS)
+
+
+if __name__ == '__main__':
+    screen = pygame.display.set_mode(size)
+    # camera = Camera()
+    clock = pygame.time.Clock()
+    start_screen()
+    # player, level_x, level_y = generate_level(load_level('level1.txt'))
+    # camera.init_camera(tiles_group, player_group)
+    clock.tick(FPS)
     pygame.quit()
