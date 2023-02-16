@@ -128,7 +128,7 @@ class Button(AnimatedObject):
         super().__init__(x, y, animation, scale)
         self.clicked = False
 
-    def draw(self, frame):
+    def initialize(self, frame):
         pos = pygame.mouse.get_pos()
 
         if self.rect.collidepoint(pos):
@@ -250,8 +250,8 @@ def start_screen():
                 frame = 0
 
         logo.draw(frame)
-        play_button.draw(frame)
-        settings_btn.draw(frame)
+        play_button.initialize(frame)
+        settings_btn.initialize(frame)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
