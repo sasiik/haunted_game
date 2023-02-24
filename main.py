@@ -43,13 +43,13 @@ screen, size, scale = init_pygame_screen()
 FPS = 60
 
 
-def load_level(filename):
-    filename = "levels/" + filename
-    with open(filename, 'r') as mapFile:
-        level_map = [line.strip() for line in mapFile]
-
-    max_width = max(map(len, level_map))
-    return list(map(lambda x: x.ljust(max_width, '.'), level_map))
+# def load_level(filename):
+#     filename = "levels/" + filename
+#     with open(filename, 'r') as mapFile:
+#         level_map = [line.strip() for line in mapFile]
+#
+#     max_width = max(map(len, level_map))
+#     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
 def terminate():
@@ -91,18 +91,13 @@ def terminate():
 #             camera.apply_target(sprite)
 
 
-tile_images = {
-}
-
 tile_width = tile_height = 50
 animations_frames_count = 5
-
 
 # группы спрайтов
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
-
 
 
 class AnimatedObject:
@@ -123,10 +118,12 @@ class AnimatedObject:
                 self.anim[i] = pygame.transform.scale(self.anim[i],
                                                       (int(self.width * scale[0]), int(self.height * scale[1])))
 
+
 class Button(AnimatedObject):
     def __init__(self, x, y, animation, scale, action):
         super().__init__(x, y, animation, scale)
         self.clicked = False
+        self.action = action
 
     def initialize(self, frame):
         pos = pygame.mouse.get_pos()
@@ -134,7 +131,7 @@ class Button(AnimatedObject):
         if self.rect.collidepoint(pos):
             if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
                 self.clicked = True
-                return action
+                return self.action()
 
             if pygame.mouse.get_pressed()[0] == 0:
                 self.clicked = False
@@ -142,13 +139,12 @@ class Button(AnimatedObject):
         screen.blit(self.anim[frame], (self.rect.x, self.rect.y))
 
 
-
-class Tile(pygame.sprite.Sprite):
-    def __init__(self, tile_type, pos_x, pos_y):
-        super().__init__(tiles_group, all_sprites)
-        self.image = tile_images[tile_type]
-        self.rect = self.image.get_rect().move(
-            tile_width * pos_x, tile_height * pos_y)
+# class Tile(pygame.sprite.Sprite):
+#     def __init__(self, tile_type, pos_x, pos_y):
+#         super().__init__(tiles_group, all_sprites)
+#         self.image = tile_images[tile_type]
+#         self.rect = self.image.get_rect().move(
+#             tile_width * pos_x, tile_height * pos_y)
 
 class Player(pygame.sprite.Sprite, AnimatedObject):
     def __init__(self, pos_x, pos_y, animation, scale):
@@ -167,6 +163,7 @@ class Player(pygame.sprite.Sprite, AnimatedObject):
         elif dir == 'D':
             self.pos_y += 1
 
+
 def play_game():
     running = True
     while running:
@@ -175,6 +172,7 @@ def play_game():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+                terminate()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     # player.move('U')
@@ -194,20 +192,19 @@ def play_game():
         pygame.display.flip()
 
 
-
-def generate_level(level):
-    new_player, x, y = None, None, None
-    for y in range(len(level)):
-        for x in range(len(level[y])):
-            if level[y][x] == '.':
-                Tile('empty', x, y)
-            elif level[y][x] == '#':
-                Tile('wall', x, y)
-            elif level[y][x] == '@':
-                Tile('empty', x, y)
-                new_player = Player(x, y)
-    # вернем игрока, а также размер поля в клетках
-    return new_player, x, y
+# def generate_level(level):
+#     new_player, x, y = None, None, None
+#     for y in range(len(level)):
+#         for x in range(len(level[y])):
+#             if level[y][x] == '.':
+#                 Tile('empty', x, y)
+#             elif level[y][x] == '#':
+#                 Tile('wall', x, y)
+#             elif level[y][x] == '@':
+#                 Tile('empty', x, y)
+#                 new_player = Player(x, y)
+#     # вернем игрока, а также размер поля в клетках
+#     return new_player, x, y
 
 
 player_animations = {'forward': [], 'backward': [], 'left': [], 'right': []}
@@ -224,7 +221,7 @@ for i in range(1, animations_frames_count + 1):
         for i in range(1, animations_frames_count + 1):
             player_animations[key].append(f'game/hero_{key}_{i}')
 
-play_button = Button(size[0] // 4, size[1] - 200 * scale[1], playbtn_animation, scale=scale, action=play_game())
+play_button = Button(size[0] // 4, size[1] - 200 * scale[1], playbtn_animation, scale=scale, action=play_game)
 settings_btn = Button(size[0] - size[0] // 4 - navbtns_width * scale[0], size[1] - 200 * scale[1],
                       settings_btn_animation,
                       scale=scale, action=True)
