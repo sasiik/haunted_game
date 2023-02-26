@@ -1,5 +1,6 @@
 from instances import *
 
+
 # невозможно переместить изза 'clock', который находится в if запускающем
 def start_screen():
     frame = 0
@@ -10,14 +11,12 @@ def start_screen():
 
         current_time = pygame.time.get_ticks()
         if current_time - last_upd >= anim_cooldown:
-            frame += 1
-            last_upd = current_time
-            if frame >= len(logo_animation):
-                frame = 0
-
-        logo.draw(frame)
-        play_button.initialize(frame)
-        settings_btn.initialize(frame)
+            for sprite in menu_sprites:
+                sprite.frame += 1
+                last_upd = current_time
+                if frame >= len(sprite.anim):
+                    sprite.frame = 0
+                sprite.draw(sprite.frame)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

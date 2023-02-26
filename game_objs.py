@@ -1,33 +1,30 @@
 from gif import *
 
 
-class Player(pygame.sprite.Sprite, AnimatedObject):
-    def __init__(self, pos_x, pos_y, animation, scale):
-        super().__init__(player_group, all_sprites, animation, scale)
-        self.pos_x = pos_x
-        self.pos_y = pos_y
-        self.scaling(scale)
+#idk bout player yet
+class Player(AnimatedObject, pygame.sprite.Sprite):
+    def __init__(self, x, y, root_path, frames_count, scale):
+        super().__init__(x, y, root_path, frames_count, scale)
 
-    def move(self, dir):
-        if dir == 'L':
-            self.pos_x -= 1
-        elif dir == 'R':
-            self.pos_x += 1
-        elif dir == 'U':
-            self.pos_y -= 1
-        elif dir == 'D':
-            self.pos_y += 1
+    # def move(self, dir):
+    #     if dir == 'L':
+    #         self.pos_x -= 1
+    #     elif dir == 'R':
+    #         self.pos_x += 1
+    #     elif dir == 'U':
+    #         self.pos_y -= 1
+    #     elif dir == 'D':
+    #         self.pos_y += 1
 
 
 class Button(AnimatedObject):
-    def __init__(self, x, y, animation, scale, action):
-        super().__init__(x, y, animation, scale)
+    def __init__(self, x, y, action, root_path, frames_count, scale, *groups):
+        super().__init__(x, y, root_path, frames_count, scale, *groups)
         self.clicked = False
         self.action = action
 
-    def initialize(self, frame):
+    def draw(self, frame):
         pos = pygame.mouse.get_pos()
-
         if self.rect.collidepoint(pos):
             if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
                 self.clicked = True
