@@ -1,36 +1,15 @@
-from instances import *
-
-
-# невозможно переместить изза 'clock', который находится в if запускающем
-def start_screen():
-    frame = 0
-    last_upd = pygame.time.get_ticks()
-    anim_cooldown = 150
-    while True:
-        screen.fill(pygame.Color('black'))
-
-        current_time = pygame.time.get_ticks()
-        if current_time - last_upd >= anim_cooldown:
-            for sprite in menu_sprites:
-                sprite.frame += 1
-                last_upd = current_time
-                if frame >= len(sprite.anim):
-                    sprite.frame = 0
-                sprite.draw(sprite.frame)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                terminate()
-        pygame.display.flip()
-        clock.tick(FPS)
-
+from init_funcs import init_pygame_screen, init_scale
+from menu import menu_screen
+from vars import screen_width, screen_height, scaling_value
 
 if __name__ == '__main__':
-    screen = pygame.display.set_mode(size)
+    screen, size = init_pygame_screen(screen_width, screen_height)
+    scale = init_scale(size[0], size[1], scaling_value)
+    menu_screen(screen, size, scale)
     # camera = Camera()
-    clock = pygame.time.Clock()
-    start_screen()
-    # player, level_x, level_y = generate_level(load_level('level1.txt'))
-    # camera.init_camera(tiles_group, player_group)
-    clock.tick(FPS)
-    pygame.quit()
+
+    # start_screen()
+    # # player, level_x, level_y = generate_level(load_level('level1.txt'))
+    # # camera.init_camera(tiles_group, player_group)
+    # clock.tick(FPS)
+    # pygame.quit()
