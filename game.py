@@ -5,19 +5,38 @@ from AnimatedObjects import AnimatedObject
 from vars import tiles_group, player_group
 
 
-class Player(AnimatedObject, pygame.sprite.Sprite):
-    def __init__(self, x, y, root_path, frames_count, scale):
-        super().__init__(x, y, root_path, frames_count, scale)
+FORWARD_ANIMATION = 'forward'
+BACKWARD_ANIMATION = 'backward'
+LEFT_ANIMATION = 'left'
+RIGHT_ANIMATION = 'right'
 
-    # def move(self, dir):
-    #     if dir == 'L':
-    #         self.pos_x -= 1
-    #     elif dir == 'R':
-    #         self.pos_x += 1
-    #     elif dir == 'U':
-    #         self.pos_y -= 1
-    #     elif dir == 'D':
-    #         self.pos_y += 1
+
+class Player(AnimatedObject):
+    @classmethod
+    def get_root_path(cls, animation_id: str) -> str:
+        return f'game/hero_{animation_id}'
+    def draw(self, screen):
+        pass
+        # screen.blit(self.anim[self.frame], (self.rect.x, self.rect.y))
+
+    def __init__(self, x, y, anim_cooldown, scale):
+        self.animation_id = FORWARD_ANIMATION
+        super().__init__(x, y, self.get_root_path(self.animation_id), 5, anim_cooldown, scale)
+        self.animations = {
+            animation_id: AnimatedObject.upload_images(self.get_root_path(animation_id), animations_frames_count=5) for animation_id in [FORWARD_ANIMATION, BACKWARD_ANIMATION, LEFT_ANIMATION, RIGHT_ANIMATION]
+        }
+
+    def move(self, dir):
+        if dir == 'L':
+            self.animation_id = LEFT_ANIMATION
+        elif dir == 'R':
+            self.animation_id = RIGHT_ANIMATION
+        elif dir == 'U':
+            self.animation_id = BACKWARD_ANIMATION
+        elif dir == 'D':
+            self.animation_id = FORWARD_ANIMATION
+
+        self.anim = self.animations[self.animation_id]
 
 
 # class Tile(pygame.sprite.Sprite):
@@ -82,8 +101,12 @@ class Player(AnimatedObject, pygame.sprite.Sprite):
 #     max_width = max(map(len, level_map))
 #     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
-def play_game(screen):
+def play_game(screen, size, scale):
     running = True
+
+    player = Player(0, 0, 150.0, scale)
+    player_group.add([player])
+
     while running:
         screen.fill(pygame.color.Color('black'))
         # обновляем положение всех спрайтов
@@ -94,18 +117,13 @@ def play_game(screen):
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
-                    # player.move('U')
-                    pass
+                    player.move('U')
                 elif event.key == pygame.K_DOWN:
-                    # player.move('D')
-                    pass
+                    player.move('D')
                 elif event.key == pygame.K_LEFT:
-                    # player.move('L')
-                    pass
+                    player.move('L')
                 elif event.key == pygame.K_RIGHT:
-                    #  player.move('R')
-                    pass
+                    player.move('R')
             # camera.init_camera(tiles_group, player_group)
-        tiles_group.draw(screen)
         player_group.draw(screen)
         pygame.display.flip()

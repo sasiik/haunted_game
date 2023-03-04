@@ -1,12 +1,12 @@
 import os
 import sys
-
+from typing import List
 import pygame.sprite
 from vars import animations_frames_count
 
 
 def load_image(name, colorkey=None):
-    fullname = os.path.join('sprites', name)
+    fullname = os.path.join("sprites", name)
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
@@ -22,14 +22,13 @@ def load_image(name, colorkey=None):
 
 
 class AnimatedObject(pygame.sprite.Sprite):
-    def __init__(self, x, y, root_path, frames_count, anim_cooldown, scale, *groups):
-        super().__init__(*groups)
-        self.anim = []
+    def __init__(self, x, y, root_path, frames_count, anim_cooldown, scale):
+        super().__init__()
+        self.anim = self.upload_images(root_path, animations_frames_count)
         self.frame = 0
         self.animations_frames_count = frames_count
         self.cooldown = anim_cooldown
         self.last_upd = 0
-        self.upload_images(self.anim, root_path, animations_frames_count)
         self.width = self.anim[0].get_width()
         self.height = self.anim[0].get_height()
         self.scaling(scale)
@@ -37,10 +36,9 @@ class AnimatedObject(pygame.sprite.Sprite):
         self.rect.topleft = (x, y)
 
     # changed upload images algo
-    def upload_images(self, animation, root_path, animations_frames_count):
-        for i in range(1, animations_frames_count + 1):
-            animation.append(load_image(f'{root_path}_{i}.png'))
-        self.anim = animation
+    @classmethod
+    def upload_images(cls, root_path, animations_frames_count):
+        return [load_image(f"{root_path}_{i}.png") for i in range(1, animations_frames_count + 1)]
 
     def draw(self, screen):
         screen.blit(self.anim[self.frame], (self.rect.x, self.rect.y))
@@ -48,8 +46,9 @@ class AnimatedObject(pygame.sprite.Sprite):
     def scaling(self, scale):
         if scale != (1, 1):
             for i in range(len(self.anim)):
-                self.anim[i] = pygame.transform.scale(self.anim[i],
-                                                      (int(self.width * scale[0]), int(self.height * scale[1])))
+                self.anim[i] = pygame.transform.scale(
+                    self.anim[i], (int(self.width * scale[0]), int(self.height * scale[1]))
+                )
 
     def flip_frame(self):
         current_time = pygame.time.get_ticks()
@@ -59,6 +58,10 @@ class AnimatedObject(pygame.sprite.Sprite):
             if self.frame >= len(self.anim):
                 self.frame = 0
 
+    @property
+    def image(self):
+        self.flip_frame()
+        return self.anim[self.frame]
 
 class Button(AnimatedObject):
     def __init__(self, x, y, action, root_path, frames_count, anim_cooldown, scale, *groups):
