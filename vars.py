@@ -1,12 +1,13 @@
+import tkinter
+
 import pygame
 
 # commented for debug reasons. currently using custom screen values
-# screen_width = tkinter.Tk().winfo_screenwidth()
-# screen_height = tkinter.Tk().winfo_screenheight()
+screen_width = tkinter.Tk().winfo_screenwidth()
+screen_height = tkinter.Tk().winfo_screenheight()
 
 
-screen_width = 1280
-screen_height = 720
+
 scaling_value = 1.5
 
 # FPS value

@@ -4,6 +4,7 @@ from vars import screen_width, screen_height, scaling_value
 
 if __name__ == '__main__':
     screen, size = init_pygame_screen(screen_width, screen_height)
+    # size не нужен, фикс
     scale = init_scale(size[0], size[1], scaling_value)
     menu_screen(screen, size, scale)
     # camera = Camera()

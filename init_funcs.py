@@ -4,7 +4,7 @@ import pygame
 def init_pygame_screen(screen_width, screen_height):
     pygame.init()
     size = screen_width, screen_height
-    screen = pygame.display.set_mode(size)
+    screen = pygame.display.set_mode(size,  pygame.FULLSCREEN)
     return screen, size
 
 
