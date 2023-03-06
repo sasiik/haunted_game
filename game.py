@@ -1,8 +1,9 @@
 import sys
-
+import random
 import pygame
 from AnimatedObjects import AnimatedObject, load_image
-from vars import tiles_group, player_group, FPS, screen_height, screen_width, game_sprites, tile_width, tile_height
+from vars import tiles_group, player_group, FPS, screen_height, screen_width, game_sprites
+from typing import Tuple
 
 FORWARD_ANIMATION = 'forward'
 BACKWARD_ANIMATION = 'backward'
@@ -26,7 +27,7 @@ class Player(AnimatedObject):
         super().__init__(x, y, self.get_root_path(self.animation_id), 5, anim_cooldown, scale)
         self.max_x = screen_width - self.rect.width
         self.max_y = screen_height - self.rect.height
-        print(self.rect.width, self.rect.height)
+
         self.animations = {
             animation_id: AnimatedObject.upload_images(self.get_root_path(animation_id), animations_frames_count=5,
                                                        colorkey=-1) for
@@ -68,16 +69,28 @@ class Player(AnimatedObject):
 
 
 class Tile(pygame.sprite.Sprite):
-    def __init__(self, tile_type, pos_x, pos_y):
-        self.tile_images = {
-            'empty': load_image('game/tile_sprite.png'),
-            'upgrade': []
-        }
+
+    @classmethod
+    def get_tile_dimensions(cls, scale) -> Tuple[int, int]:
+        image = load_image("game/tile_sprite.png")
+        return pygame.transform.scale(
+            image, (int(image.get_width() * scale), int(image.get_height() * scale))
+        ).get_size()
+
+    def __init__(self, tile_type, pos_x, pos_y, scale: float):
         super().__init__(tiles_group, game_sprites)
-        self.image = self.tile_images[tile_type]
+        if not isinstance(scale, float):
+            raise TypeError('Scale must be float')
+
+        self.scale = scale
+        self.image = load_image('game/tile_sprite.png')
+        width, height = self.image.get_size()
+        self.image = pygame.transform.scale(self.image, (int(width * scale), int(height * scale)))
+        self.image = pygame.transform.rotate(self.image, random.choice([0, 90, 180, 270]))
+
+        width, height = self.image.get_size()
         self.rect = self.image.get_rect().move(
-            tile_width * pos_x, tile_height * pos_y)
-        print(self.image, self.rect)
+            width * pos_x, height * pos_y)
 
 
 # class Camera:
@@ -113,16 +126,17 @@ class Tile(pygame.sprite.Sprite):
 #             camera.apply_target(sprite)
 
 
-def generate_level(tiles_number_in_width, tiles_number_in_height):
+def generate_level(tiles_number_in_width, tiles_number_in_height, scale: float):
     for y in range(tiles_number_in_height):
         for x in range(tiles_number_in_width):
-            Tile('empty', x, y)
+            Tile('empty', x, y, scale=scale)
 
 
-def play_game(screen, size, scale):
+def play_game(screen, size, scale: float):
     clock = pygame.time.Clock()
     running = True
-    generate_level(40, 40)
+
+    generate_level(40, 40, scale=scale)
     player = Player(0, 0, 150.0, scale)
     player_group.add([player])
 

@@ -63,7 +63,7 @@ class AnimatedObject(pygame.sprite.Sprite):
         if scale != (1, 1):
             for i in range(len(animation)):
                 animation[i] = pygame.transform.scale(
-                    animation[i], (int(self.width * scale[0]), int(self.height * scale[1]))
+                    animation[i], (int(self.width * scale), int(self.height * scale))
                 )
 
     def flip_frame(self):

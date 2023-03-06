@@ -7,12 +7,12 @@ from vars import menu_logo_width, navbtns_width, menu_sprites, FPS
 from game import play_game
 
 
-def create_menu_objects(screen_size, scale, settings_func, play_game_func):
+def create_menu_objects(screen_size, scale: float, settings_func, play_game_func):
     menu_sprites.add(
         [
             AnimatedObject(
-                screen_size[0] // 2 - menu_logo_width * scale[0] // 2,
-                100 * scale[1],
+                screen_size[0] // 2 - menu_logo_width * scale // 2,
+                100 * scale,
                 "mainmenu/menu_logo",
                 5,
                 150,
@@ -20,7 +20,7 @@ def create_menu_objects(screen_size, scale, settings_func, play_game_func):
             ),
             Button(
                 screen_size[0] // 4,
-                screen_size[1] - 200 * scale[1],
+                screen_size[1] - 200 * scale,
                 play_game_func,
                 "mainmenu/play_button",
                 5,
@@ -28,8 +28,8 @@ def create_menu_objects(screen_size, scale, settings_func, play_game_func):
                 scale,
             ),
             Button(
-                screen_size[0] - screen_size[0] // 4 - navbtns_width * scale[0],
-                screen_size[1] - 200 * scale[1],
+                screen_size[0] - screen_size[0] // 4 - navbtns_width * scale,
+                screen_size[1] - 200 * scale,
                 settings_func,
                 "mainmenu/settings_button",
                 5,
@@ -40,7 +40,7 @@ def create_menu_objects(screen_size, scale, settings_func, play_game_func):
     )
 
 
-def menu_screen(screen, size, scale):
+def menu_screen(screen, size, scale: float):
     clock = pygame.time.Clock()
     create_menu_objects(size, scale, True, lambda: play_game(screen, size, scale))
     while True:
