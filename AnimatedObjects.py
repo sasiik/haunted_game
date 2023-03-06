@@ -51,11 +51,10 @@ class AnimatedObject(pygame.sprite.Sprite):
     def y(self, value):
         self.rect.y = value
 
-
     # changed upload images algo
     @classmethod
-    def upload_images(cls, root_path, animations_frames_count):
-        return [load_image(f"{root_path}_{i}.png") for i in range(1, animations_frames_count + 1)]
+    def upload_images(cls, root_path, animations_frames_count, colorkey=None):
+        return [load_image(f"{root_path}_{i}.png", colorkey) for i in range(1, animations_frames_count + 1)]
 
     def draw(self, screen):
         screen.blit(self.anim[self.frame], (self.rect.x, self.rect.y))
@@ -79,6 +78,7 @@ class AnimatedObject(pygame.sprite.Sprite):
     def image(self):
         self.flip_frame()
         return self.anim[self.frame]
+
 
 class Button(AnimatedObject):
     def __init__(self, x, y, action, root_path, frames_count, anim_cooldown, scale, *groups):

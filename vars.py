@@ -14,7 +14,7 @@ scaling_value = 1.5
 FPS = 60
 
 # tile parameters
-tile_width = tile_height = 50
+tile_width = tile_height = 100
 animations_frames_count = 5
 anim_cooldown = 150
 

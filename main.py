@@ -9,6 +9,7 @@ if __name__ == '__main__':
     menu_screen(screen, size, scale)
     # camera = Camera()
 
+
     # start_screen()
     # # player, level_x, level_y = generate_level(load_level('level1.txt'))
     # # camera.init_camera(tiles_group, player_group)
